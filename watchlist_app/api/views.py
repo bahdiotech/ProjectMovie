@@ -73,7 +73,7 @@ class ReviewList(generics.ListAPIView):
 class ReviewCreate(generics.CreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
-    throttle_classes = [ReviewCreateThrottle]
+    # throttle_classes = [ReviewCreateThrottle]
 
 
 
@@ -99,6 +99,25 @@ class ReviewCreate(generics.CreateAPIView):
         watchlistpk.save()
 
         serializer.save(watchlist=watchlistpk, review_user=cur_review_user)
+
+
+class WatchListCreate(generics.CreateAPIView):
+
+    serializer_class = WatchListSerializer
+
+    def get_queryset(self):
+        return WatchList.objects.all()
+
+    def perform_create(self, serializer):
+        input_platform = self.request.data.get('platform')
+        try:
+            platform = StreamPlatform.objects.get(name=input_platform)
+        except StreamPlatform.DoesNotExist:
+            raise ValidationError({'Error': 'Platform You inputed is not on our database!'})
+        serializer.save(platform=platform)
+
+
+
 
 
 class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -160,6 +179,16 @@ class WatchListAV(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
+
+
+
+        # watchlist_queryset = WatchList.objects.filter(platform=input_platform, review_user=cur_review_user)
+
+
+
+
+
 
 
 class WatchListDetailAV(APIView):
